@@ -1,8 +1,9 @@
 const fetch = require('node-fetch');
 const fs = require('fs');
 
+// Modify these to work with different form content sections within the UL
 const prompt = 'signup-id'; 
-const filePath = 'custom sign up fields.html';
+const filePath = 'signup-id-form-content-end.html';
 const promptEntryPoint = "form-content-end";
 
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
