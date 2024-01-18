@@ -1,0 +1,98 @@
+<script>
+    function swapDateInput() {
+        if (document.getElementById('birthday').type === "text") {
+            document.getElementById("birthday").type = "date";
+            document.getElementById("birthday-label").style.display = "none";
+        } else if (document.getElementById('birthday').type === "date") {
+            document.getElementById("birthday").type = "text";
+            document.getElementById("birthday-label").style.display = "block";
+        }
+    }
+</script>
+<script> function validateBirthdayFunction(element, formSubmitted) {
+        if (!formSubmitted) {
+            return true;
+        }
+
+        if (element.value)
+
+            return !!element.value;
+    }
+</script>
+<div class='ulp-field'>
+    <label for='birthday' id="birthday-label">Birthday (MM/DD/YYYY)</label>
+    <input type='text' name='ulp-birthday' id='birthday' onfocus="swapDateInput()" onblur="swapDateInput()">
+    <div class='ulp-error-info' data-ulp-validation-function='validateBirthdayFunction'
+        data-ulp-validation-event-listeners='blur,change,input,focus'>Please enter a valid birthday.</div>
+</div>
+<script>
+    function validateAccountType(element, formSubmitted) {
+        let otherTypeInput = document.getElementById("other-account-type-wrapper");
+        if (element.value === "other") {
+            otherTypeInput.style.display = "block";
+        } else {
+            otherTypeInput.style.display = "none";
+        }
+        if (!formSubmitted) {
+            return true;
+        }
+        return !!element.value;
+
+    }
+</script>
+<script>
+    function validateOtherAccountType(element, formSubmitted) {
+        if (!formSubmitted) {
+            return true;
+        }
+        const accountType = document.getElementById("account-type");
+        return accountType.value === "other" ? !!element.value : true;
+
+    }
+</script>
+<style>
+    input[type="date"] {
+        padding: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+        outline: none;
+        width: 100%;
+        color: rgb(101, 103, 110);
+    }
+
+    input[type="date"]:focus {
+        border-color: #007BFF;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+</style>
+<div class="ulp-field">
+    <label for="account-type">Account Type</label>
+    <select name="ulp-account-type" id="account-type">
+        <option></option>
+        <option value="owner">Owner</option>
+        <option value="member">Member</option>
+        <option value="other">Other</option>
+    </select>
+    <div class="ulp-error-info" data-ulp-validation-function='validateAccountType'
+        data-ulp-validation-event-listeners='blur,change,input,focus'>
+        Please select an account type.
+    </div>
+</div>
+<div class="ulp-field" style="display: none;" id="other-account-type-wrapper">
+    <label for="other-account-type">Other Account Type</label>
+    <input type="text" name="ulp-other-account-type" id="other-account-type">
+    <div class="ulp-error-info" data-ulp-validation-function='validateOtherAccountType'
+        data-ulp-validation-event-listeners='blur,change,input,focus'>
+        Please enter your account type.
+    </div>
+</div>
+<script>
+    function validateSelectFunction(element, formSubmitted) { if (!formSubmitted) { return true; } return !!element.checked; }
+</script>
+<div class='ulp-field'> <input type='checkbox' name='ulp-terms-of-service' id='terms-of-service'> <label
+        for='terms-of-service'>I agree to the <a href='https://demo0.samyap.dev/terms-of-service'>Terms of Service</a>
+    </label>
+    <div class='ulp-error-info' data-ulp-validation-function='validateSelectFunction'
+        data-ulp-validation-event-listeners='blur,change,input,focus'>Please agree to the Terms of Service.</div>
+</div>
