@@ -13,3 +13,5 @@ Run the utility with the command `node --env-file=config.env updatePartials.js`
 We have also supplied the sample Action for this code base to make the data capture work as well in `pre-register-action.js`.
 
 Note: This does require Node 20 or greater to work natively with .env files.  Consider hard-coding the configs if necessary.
+
+Currently live example at demo0.samyap.dev -> Click `Sign Up` button
