@@ -14,4 +14,4 @@ We have also supplied the sample Action for this code base to make the data capt
 
 Note: This does require Node 20 or greater to work natively with .env files.  Consider hard-coding the configs if necessary.
 
-Currently live example at demo0.samyap.dev -> Click `Sign Up` button
+Currently live example at https://demo0.samyap.dev -> Click `Sign Up` button
