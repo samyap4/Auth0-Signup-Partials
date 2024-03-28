@@ -1,52 +1,103 @@
 const axios = require('axios');
-const fs = require('fs');
+const fs = require('fs-extra');
 
-const prompt = 'signup-id'; 
-const filePath = 'signup-id-form-content-end.html';
-const promptEntryPoint = "form-content-end";
+async function main() {
+    const inquirer = await import('inquirer');
 
-const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
+  const { AUTH0_DOMAIN, CLIENT_ID, CLIENT_SECRET } = process.env; 
 
-const apiUrl = `https://${AUTH0_DOMAIN}/api/v2/prompts/${prompt}/partials`;
+  const promptChoices = [
+    'signup',
+    'signup-id',
+    'signup-password',
+    'login',
+    'login-id',
+    'login-password',
+  ];
 
-const updatePartial = async (filePath) => {
-  try {
-    const authResponse = await axios.post(`https://${AUTH0_DOMAIN}/oauth/token`, {
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      audience: `https://${AUTH0_DOMAIN}/api/v2/`,
-      grant_type: 'client_credentials',
-    });
+  const promptToScreenMapping = {
+    'signup': ['signup'],
+    'signup-id': ['signup-id'],
+    'signup-password': ['signup-password'],
+    'login': ['login'],
+    'login-id': ['login-id'],
+    'login-password': ['login-password'],
+  };
 
-    if (authResponse.status !== 200) {
-      console.error(`Failed to authenticate: ${authResponse.data}`);
-      return;
+  const entryPointQuestions = [
+    {
+      type: 'input',
+      name: 'formContentStart',
+      message: 'Path to HTML file for form-content-start (leave blank if not applicable):',
+    },
+    {
+      type: 'input',
+      name: 'formContentEnd',
+      message: 'Path to HTML file for form-content-end (leave blank if not applicable):',
+    },
+    {
+      type: 'input',
+      name: 'formFooterStart',
+      message: 'Path to HTML file for form-footer-start (leave blank if not applicable):',
+    },
+    {
+      type: 'input',
+      name: 'formFooterEnd',
+      message: 'Path to HTML file for form-footer-end (leave blank if not applicable):',
+    },
+  ];
+
+  const promptResponse = await inquirer.default.prompt([
+    {
+      type: 'list',
+      name: 'prompt',
+      message: 'Select the prompt to update:',
+      choices: promptChoices,
     }
+  ]);
+  console.log(promptResponse)
 
-    const partialData = {};
-    partialData[`${prompt}`] = {};
-    partialData[`${prompt}`][`${promptEntryPoint}`] = fs.readFileSync(filePath, 'utf8');
+  const screens = promptToScreenMapping[promptResponse.prompt];
 
-    console.log(partialData);
+  let payload = {};
 
-    const updateResponse = await axios.put(apiUrl, partialData, {
+  for (const screen of screens) {
+    console.log(`Configuring screen: ${screen}`);
+    payload[screen] = {};
+    const entryPointsResponses = await inquirer.default.prompt(entryPointQuestions);
+    for (const [key, value] of Object.entries(entryPointsResponses)) {
+      if (value) {
+        const htmlContent = await fs.readFile(value, 'utf8');
+        const entryPoint = key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+        payload[screen][entryPoint] = htmlContent;
+      }
+    }
+  }
+
+  try {
+    const tokenResponse = await axios.post(`https://${AUTH0_DOMAIN}/oauth/token`, {
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    audience: `https://${AUTH0_DOMAIN}/api/v2/`,
+    grant_type: 'client_credentials',
+  });
+
+  const { access_token } = tokenResponse.data;
+
+    
+    await axios.put(`https://${AUTH0_DOMAIN}/api/v2/prompts/${promptResponse.prompt}/partials`, payload, {
       headers: {
+        'Authorization': `Bearer ${access_token}`,
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${authResponse.data.access_token}`,
       },
     });
 
-    if (updateResponse.status !== 200) {
-      console.error(`Failed to update partial: ${updateResponse.data.error_description}`);
-      return;
-    }
+    
 
-    console.log('Partial updated successfully:', updateResponse.data);
+    console.log('Partial updated successfully.');
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Error updating partial:', error.response?.data || error.message);
   }
-};
+}
 
-updatePartial(filePath);
+main();
