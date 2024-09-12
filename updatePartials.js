@@ -1,8 +1,8 @@
 const axios = require('axios');
 const fs = require('fs-extra');
+const inquirer = require('inquirer')
 
 async function main() {
-    const inquirer = await import('inquirer');
 
   const { AUTH0_DOMAIN, CLIENT_ID, CLIENT_SECRET } = process.env; 
 
