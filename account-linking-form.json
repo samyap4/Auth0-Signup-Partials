@@ -1,0 +1,212 @@
+{
+    "id": "ap_4n54pHjfdkdRuKrz7ykayM",
+    "name": "Account linking",
+    "languages": {
+      "primary": "en",
+      "default": "en"
+    },
+    "nodes": [
+      {
+        "id": "step_CvTQ",
+        "type": "STEP",
+        "coordinates": {
+          "x": 652,
+          "y": 99
+        },
+        "config": {
+          "components": [
+            {
+              "id": "rich_text_jOh7",
+              "category": "BLOCK",
+              "type": "RICH_TEXT",
+              "config": {
+                "content": "<h1 style=\"text-align:left;\">You already have an account</h1><p style=\"text-align:left;\">We found an existing account that matches your email address {{context.user.email}}. Please, log in if you want to link your accounts.</p>"
+              }
+            },
+            {
+              "id": "login_options",
+              "category": "FIELD",
+              "type": "CUSTOM",
+              "required": false,
+              "sensitive": false,
+              "config": {
+                "schema": {},
+                "code": "function loginOptions(context) {\n  const CONTAINER_CLASS = 'af-accountLinkingOptions';\n\n  const container = document.createElement('div');\n  container.classList.add(CONTAINER_CLASS);\n\n  const CONNECTION_MAPPING = {\n    'google-oauth2': {\n      text: 'Google',\n    },\n    'Username-Password-Authentication': {\n      text: 'Email',\n    },\n  };\n\n  function buildAuthorizeUrl(connection) {\n    const config = context.custom.getParams();\n    const { client_id, email, app_hostname } = config;\n\n    const BASE_URL = `https://${app_hostname}`;\n    const AUTHORIZE_PATH = '/authorize';\n\n    const AUTHORIZE_URL = new URL(AUTHORIZE_PATH, BASE_URL);\n\n    AUTHORIZE_URL.searchParams.append('client_id', client_id);\n    AUTHORIZE_URL.searchParams.append('response_type', 'code');\n    AUTHORIZE_URL.searchParams.append('prompt', 'login');\n    AUTHORIZE_URL.searchParams.append('account_linking', 'true');\n    AUTHORIZE_URL.searchParams.append('connection', connection);\n    AUTHORIZE_URL.searchParams.append('login_hint', email);\n    AUTHORIZE_URL.searchParams.append('scope', 'openid profile');\n    AUTHORIZE_URL.searchParams.append('redirect_uri', window.location.href);\n\n    return AUTHORIZE_URL.href;\n  }\n\n  function buildButton(href, connection) {\n    const button = document.createElement('a');\n    button.classList.add('af-button', 'af-nextButton', 'af-customButton');\n    button.setAttribute('data-connection', connection);\n    button.href = href;\n\n    const logo = document.createElement('span');\n    logo.classList.add('af-customButtonIcon');\n\n    const text = document.createElement('span');\n    text.innerText = `Continue with ${CONNECTION_MAPPING[connection]?.text ?? connection}`;\n\n    button.appendChild(logo);\n    button.appendChild(text);\n\n    return button;\n  }\n\n  function buildLoginOptions() {\n    const config = context.custom.getParams();\n    const { candidate_identities } = config;\n  \n    candidate_identities.forEach((option) => {\n      const href = buildAuthorizeUrl(option.connection);\n      const button = buildButton(href, option.connection);\n  \n      container.appendChild(button);\n    });\n  }\n\n\n  return {\n    init() {\n      buildLoginOptions();\n      return container;\n    },\n  };\n}",
+                "params": {
+                  "email": "{{context.user.email}}",
+                  "client_id": "{{vars.app_client_id}}",
+                  "app_hostname": "{{vars.app_hostname}}",
+                  "candidate_identities": "{{vars.candidate_identities}}"
+                }
+              }
+            },
+            {
+              "id": "next_button_nINl",
+              "category": "BLOCK",
+              "type": "NEXT_BUTTON",
+              "config": {
+                "text": "Skip"
+              }
+            }
+          ],
+          "next_node": "$ending"
+        }
+      },
+      {
+        "id": "step_WbLr",
+        "type": "STEP",
+        "coordinates": {
+          "x": 888,
+          "y": -536
+        },
+        "config": {
+          "components": [
+            {
+              "id": "rich_text_g9QI",
+              "category": "BLOCK",
+              "type": "RICH_TEXT",
+              "config": {
+                "content": "<h1 style=\"text-align:left;\">Link your account</h1><p style=\"text-align:left;\">You have successfully authenticated with your account. Please, confirm you want to link the following accounts:</p>"
+              }
+            },
+            {
+              "id": "html_strq",
+              "category": "BLOCK",
+              "type": "HTML",
+              "config": {
+                "content": "<div class=\"af-accountCard\">\n  <p><b>Secondary account</b></p>\n  <span>{{vars.candidate_sub}}</span>\n</div>\n<span class=\"af-accountArrow\">↓</span>\n<div class=\"af-accountCard af-currentAccount\">\n  <p><b>Main account</b></p>\n  <span>{{context.user.user_id}}</span>\n</div>\n<div style=\"margin-bottom: var(--spacing-4);\"></div>"
+              }
+            },
+            {
+              "id": "next_button_qDQX",
+              "category": "BLOCK",
+              "type": "JUMP_BUTTON",
+              "config": {
+                "text": "Link accounts",
+                "next_node": "flow_uwtu",
+                "style": {
+                  "background_color": "#3F59E4"
+                }
+              }
+            },
+            {
+              "id": "next_button_Q5op",
+              "category": "BLOCK",
+              "type": "NEXT_BUTTON",
+              "config": {
+                "text": "Cancel"
+              }
+            }
+          ],
+          "next_node": "$ending"
+        }
+      },
+      {
+        "id": "router_Tekv",
+        "type": "ROUTER",
+        "coordinates": {
+          "x": 117,
+          "y": -3
+        },
+        "config": {
+          "rules": [
+            {
+              "id": "id_9148670579713",
+              "alias": "Has code?",
+              "condition": {
+                "operands": [
+                  {
+                    "operands": [
+                      "{{fields.code}}"
+                    ],
+                    "operator": "HAS_VALUE"
+                  }
+                ],
+                "operator": "AND"
+              },
+              "next_node": "flow_BU9o"
+            }
+          ],
+          "fallback": "step_CvTQ"
+        }
+      },
+      {
+        "id": "flow_BU9o",
+        "type": "FLOW",
+        "coordinates": {
+          "x": 502,
+          "y": -334
+        },
+        "config": {
+          "flow_id": "af_kQ1ADAkFfYbqgwXbec6r28",
+          "next_node": "step_WbLr"
+        }
+      },
+      {
+        "id": "flow_uwtu",
+        "type": "FLOW",
+        "coordinates": {
+          "x": 1501,
+          "y": -336
+        },
+        "alias": "Link identites",
+        "config": {
+          "flow_id": "af_hpQ7Hd5wSfAkXas4pM76J9",
+          "next_node": "flow_SdxC"
+        }
+      },
+      {
+        "id": "flow_Z0T9",
+        "type": "FLOW",
+        "coordinates": {
+          "x": -182,
+          "y": -235
+        },
+        "alias": "New flow",
+        "config": {
+          "flow_id": "af_6XVBadkvi7Ndm3siMQRebX",
+          "next_node": "router_Tekv"
+        }
+      },
+      {
+        "id": "flow_SdxC",
+        "type": "FLOW",
+        "coordinates": {
+          "x": 1849,
+          "y": -176
+        },
+        "alias": "New flow",
+        "config": {
+          "flow_id": "af_6XVBadkvi7Ndm3siMQRebX",
+          "next_node": "$ending"
+        }
+      }
+    ],
+    "start": {
+      "hidden_fields": [
+        {
+          "key": "code"
+        },
+        {
+          "key": "state"
+        }
+      ],
+      "next_node": "flow_Z0T9",
+      "coordinates": {
+        "x": -385,
+        "y": -62
+      }
+    },
+    "ending": {
+      "resume_flow": true,
+      "coordinates": {
+        "x": 1719,
+        "y": 32
+      }
+    },
+    "style": {
+      "css": ".af-customButton {\n  display: flex;\n  justify-content: left;\n  align-items: center;\n  margin-bottom: var(--spacing-4);\n}\n\n.af-customButton[data-connection=\"google-oauth2\"] {\n    background: white;\n    color: var(--font-color);\n    border: var(--input-border-width) solid var(--input-border-color);\n}\n\n.af-customButton[data-connection=\"Username-Password-Authentication\"] {\n    background: white;\n    color: var(--font-color);\n    border: var(--input-border-width) solid var(--input-border-color);\n}\n\n.af-customButton[data-connection=\"google-oauth2\"] .af-customButtonIcon {\n    background-image: url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 48 48'%3E%3Cdefs%3E%3Cpath id='a' d='M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z'/%3E%3C/defs%3E%3CclipPath id='b'%3E%3Cuse xlink:href='%23a' overflow='visible'/%3E%3C/clipPath%3E%3Cpath clip-path='url(%23b)' fill='%23FBBC05' d='M0 37V11l17 13z'/%3E%3Cpath clip-path='url(%23b)' fill='%23EA4335' d='M0 11l17 13 7-6.1L48 14V0H0z'/%3E%3Cpath clip-path='url(%23b)' fill='%2334A853' d='M0 37l30-23 7.9 1L48 0v48H0z'/%3E%3Cpath clip-path='url(%23b)' fill='%234285F4' d='M48 48L17 24l-4-3 35-10z'/%3E%3C/svg%3E\");\n}\n.af-customButton[data-connection=\"Username-Password-Authentication\"] .af-customButtonIcon {\n    background-image: url(\"https://cdn.auth0.com/ulp/react-components/0.0.0-semantically-released/img/theme-generic/email-icon.svg\");\n}\n\n.af-customButtonIcon {\n    display: inline-flex;\n    width: 20px;\n    height: 20px;\n    background-size: contain;\n    background-repeat: no-repeat;\n    background-position: 50%;\n    margin-left: var(--spacing-1);\n    margin-right: var(--spacing-2);\n}\n\n.af-componentId-next_button_nINl .af-button.af-nextButton, .af-componentId-next_button_Q5op .af-button.af-nextButton {\n  background: none;\n  padding: 0;\n  border: none;\n  box-shadow: none;\n  outline: none;\n  color: var(--font-color);\n  width: auto;\n}\n.af-componentId-next_button_nINl .af-button.af-nextButton:hover, .af-componentId-next_button_Q5op .af-button.af-nextButton:hover {\n  text-decoration: underline;\n}\n.af-componentId-next_button_nINl, .af-componentId-next_button_Q5op {\n  display: flex;\n  justify-content: center;\n}\n\n.af-accountArrow {\n    display: flex;\n    justify-content: center;\n    margin-bottom: var(--spacing-1);\n    font-size: var(--font-size-h3);\n    color: var(--font-color);\n}\n\n.af-accountCard.af-currentAccount {\n    border-style: solid;\n}\n.af-accountCard {\n    border: var(--input-border-width) dashed var(--input-border-color);\n    border-radius: var(--border-radius);\n    padding: var(--spacing-1) var(--spacing-2);\n    margin-bottom: var(--spacing-1);\n}\n\n"
+    },
+    "created_at": "2024-10-11T00:17:37.870Z",
+    "updated_at": "2024-10-16T18:41:40.463Z"
+  }
